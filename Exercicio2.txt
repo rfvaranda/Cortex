@@ -1,0 +1,146 @@
+
+1 - Utilizaremos o Hive para criar uma tabela e importar o arquivo base de vendas
+
+2 - As agregações foram geradas em SQL
+
+3 - Devemos fazer o upload do arquivo para o servidor do cluster
+
+
+# ------------------------------------------------------
+# Script para criar a tabela no Hive e importar os dados
+#
+# Autor: Rafael Varanda
+# ------------------------------------------------------
+
+
+CREATE TABLE `base_vendas`(
+  `pedido` string,
+  `nome_produto` string,
+  `categoria_produto` string,
+  `nome_cliente` string,
+  `vendedor` string,
+  `loja` string,
+  `quantidade` string,
+  `preco_un` string,
+  `desconto` string )
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
+WITH SERDEPROPERTIES 
+(
+    "separatorChar" = ",",
+    "quoteChar"     = "\""
+)  
+STORED AS TEXTFILE
+TBLPROPERTIES (  'skip.header.line.count'='1');
+
+
+load data local inpath "/var/lib/hadoop-hdfs/base_vendas.csv" OVERWRITE  INTO TABLE default.base_vendas;
+
+
+# SQLs para agregações
+
+---------------------------------------------------------------------------------------------------
+Total de vendas 146.923,51
+
+SELECT sum( 
+      (  CAST(regexp_replace(regexp_replace(TRIM(preco_un),'\\.',''),',','.') as decimal(12,2))
+       - CAST(regexp_replace(regexp_replace(TRIM(desconto),'\\.',''),',','.') as decimal(12,2))
+      ) * CAST(regexp_replace(regexp_replace(TRIM(quantidade),'\\.',''),',','.') as decimal(12,2))
+   )
+FROM default.base_vendas;
+
+---------------------------------------------------------------------------------------------------
+Resultado de vendas da categoria alimentos é de R$3.505,91
+
+SELECT sum( 
+      (  CAST(regexp_replace(regexp_replace(TRIM(preco_un),'\\.',''),',','.') as decimal(12,2))
+       - CAST(regexp_replace(regexp_replace(TRIM(desconto),'\\.',''),',','.') as decimal(12,2))
+      ) * CAST(regexp_replace(regexp_replace(TRIM(quantidade),'\\.',''),',','.') as decimal(12,2))
+   )
+FROM default.base_vendas
+where categoria_produto = 'ALIMENTOS';
+
+---------------------------------------------------------------------------------------------------
+resultado de vendas por categoria 
+
+ALIMENTOS       3505.91
+BEBIDAS 	94102.93
+CASA    	3698.33
+HIGIENE 	45616.34
+
+
+SELECT categoria_produto , sum( 
+      (  CAST(regexp_replace(regexp_replace(TRIM(preco_un),'\\.',''),',','.') as decimal(12,2))
+       - CAST(regexp_replace(regexp_replace(TRIM(desconto),'\\.',''),',','.') as decimal(12,2))
+      ) * CAST(regexp_replace(regexp_replace(TRIM(quantidade),'\\.',''),',','.') as decimal(12,2))
+   )
+FROM default.base_vendas
+group by categoria_produto;
+
+
+---------------------------------------------------------------------------------------------------
+resultado de vendas por loja
+
+RJ      104154.85
+SP      42768.66
+
+
+SELECT loja, sum( 
+      (  CAST(regexp_replace(regexp_replace(TRIM(preco_un),'\\.',''),',','.') as decimal(12,2))
+       - CAST(regexp_replace(regexp_replace(TRIM(desconto),'\\.',''),',','.') as decimal(12,2))
+      ) * CAST(regexp_replace(regexp_replace(TRIM(quantidade),'\\.',''),',','.') as decimal(12,2))
+   )
+FROM default.base_vendas
+group by loja;
+
+---------------------------------------------------------------------------------------------------
+resultado de vendas por loja, vendedor
+
+
+RJ      A       88656.37
+RJ      B       3770.92
+RJ      C       1171.63
+RJ      D       1700.94
+RJ      E       5546.08
+RJ      F       1008.28
+RJ      G       2300.63
+SP      A       16498.17
+SP      B       8300.1
+SP      C       1467.26
+SP      D       4464.39
+SP      E       6739.39
+SP      G       5299.35
+
+
+SELECT loja, vendedor, sum( 
+      (  CAST(regexp_replace(regexp_replace(TRIM(preco_un),'\\.',''),',','.') as decimal(12,2))
+       - CAST(regexp_replace(regexp_replace(TRIM(desconto),'\\.',''),',','.') as decimal(12,2))
+      ) * CAST(regexp_replace(regexp_replace(TRIM(quantidade),'\\.',''),',','.') as decimal(12,2))
+   )
+FROM default.base_vendas
+group by loja, vendedor
+
+---------------------------------------------------------------------------------------------------
+resultado de vendas por produto
+
+SELECT nome_produto, sum( 
+      (  CAST(regexp_replace(regexp_replace(TRIM(preco_un),'\\.',''),',','.') as decimal(12,2))
+       - CAST(regexp_replace(regexp_replace(TRIM(desconto),'\\.',''),',','.') as decimal(12,2))
+      ) * CAST(regexp_replace(regexp_replace(TRIM(quantidade),'\\.',''),',','.') as decimal(12,2))
+   )
+FROM default.base_vendas
+group by nome_produto;
+
+---------------------------------------------------------------------------------------------------
+Produto com maior resultado de vendas
+
+Sabão em Pó Omo Lavagem Perfeita 800g| 20 Unidades      28343
+
+
+SELECT nome_produto, sum( 
+      (  CAST(regexp_replace(regexp_replace(TRIM(preco_un),'\\.',''),',','.') as decimal(12,2))
+       - CAST(regexp_replace(regexp_replace(TRIM(desconto),'\\.',''),',','.') as decimal(12,2))
+      ) * CAST(regexp_replace(regexp_replace(TRIM(quantidade),'\\.',''),',','.') as decimal(12,2))
+   ) as total
+FROM default.base_vendas
+group by nome_produto
+order by total desc
