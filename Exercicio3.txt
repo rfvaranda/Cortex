@@ -1,0 +1,68 @@
+
+1 - Para fazermos a conversão dos valores agregados, basta alterar os parametros do código abaixo.
+
+2 - Essa API possui uma limitação, onde não temos o REAL para utilizar.
+
+
+# ----------------------------------------------------
+# Codigo para converter moedas em uma determinada data
+#
+# Autor: Rafael Varanda
+# ----------------------------------------------------
+
+import pandas as pd
+import requests
+import io
+
+# recupera cotacao das moedas na data determinada
+
+headers = {'accept': 'text/csv',}
+
+# moeda 1, entrar com codigo da moeda e data abaixo
+
+params = (
+    ('@moeda', '\'EUR\''),
+    ('@dataCotacao', '\'10-22-2019\''),
+    ('$format', 'text/csv'),
+)
+
+responseMoeda1 = requests.get('https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)', headers=headers, params=params)
+
+# moeda 2, entrar com codigo da moeda e data abaixo
+
+params2 = (
+    ('@moeda', '\'AUD\''),
+    ('@dataCotacao', '\'10-22-2019\''),
+    ('$format', 'text/csv'),
+)
+
+responseMoeda2 = requests.get('https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)', headers=headers, params=params2)
+
+# Valor para converter
+
+valConverter = 50
+
+# cria dataframe com retorno do get
+
+dataMoeda1 = responseMoeda1.content.decode('utf8')
+df1 = pd.read_csv(io.StringIO(dataMoeda1))
+dataMoeda2 = responseMoeda2.content.decode('utf8')
+df2 = pd.read_csv(io.StringIO(dataMoeda2))
+
+# recupera os valores das moedas para conversao
+
+val1 = df1.loc[df1.tipoBoletim == 'Fechamento PTAX','paridadeCompra'].values[0]
+val2 = df2.loc[df2.tipoBoletim == 'Fechamento PTAX','paridadeVenda'].values[0]
+
+val1 = float(val1.replace(",","."))
+val2 = float(val2.replace(",","."))
+
+# calculo da conversao pela formula
+# ([Valor] X [Paridade Compra Moeda1]) / [Paridade Venda Moeda2]
+
+valConvertido = (valConverter * val1) / val2
+
+# retorna valor convertido
+
+print valConvertido 
+
