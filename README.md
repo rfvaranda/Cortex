@@ -29,3 +29,11 @@ Para o exercício 2:
 2 - As agregações foram geradas em SQL
 
 3 - Devemos fazer o upload do arquivo para o servidor do cluster
+
+
+Para o exercício 3:
+
+1 - Para fazermos a conversão dos valores agregados, basta alterar os parametros do código abaixo.
+
+2 - Essa API possui uma limitação, onde não temos o REAL para utilizar.
+
