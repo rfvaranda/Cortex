@@ -20,3 +20,11 @@ JPY,Iene
 NOK,Coroa norueguesa
 SEK,Coroa sueca
 USD,Dólar dos Estados Unidos
+
+Para o exercício 2:
+
+1 - Utilizaremos o Hive para criar uma tabela e importar o arquivo base de vendas
+
+2 - As agregações foram geradas em SQL
+
+3 - Devemos fazer o upload do arquivo para o servidor do cluster
