@@ -6,10 +6,7 @@ Para o exercício 1:
 
 2 - Foi desenvolvido em Python e temos os seguintes paramentros que devemos colocar no código:
 
-   Data cotação
-   Valor a ser convertido
-   Moeda 1
-   Moeda 2
+   Data cotação ,  Valor a ser convertido ,  Moeda 1 , Moeda 2
 
 3 - Essa API possui uma limitação, onde somente temos cotações para as seguintes moedas:
 
